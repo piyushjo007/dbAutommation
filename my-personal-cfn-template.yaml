@@ -251,4 +251,41 @@ Resources:
             SubnetId: !Ref SubnetDPrivate
             RouteTableId: !Ref RouteTableDPrivate
             
+############# Phase III ###############
+#
+########################################
+# Public internet route
+
+    RouteTablePublicInternetRoute:
+        Type: 'AWS::EC2::Route'
+        DependsOn: VPCGatewayAttachment
+        Properties:
+            RouteTableId: !Ref RouteTablePublic
+            DestinationCidrBlock: '0.0.0.0/0'
+            GatewayId: !Ref InternetGateway
             
+    RouteTablePublicBInternetRoute:
+        Type: 'AWS::EC2::Route'
+        DependsOn: VPCGatewayAttachment
+        Properties:
+            RouteTableId: !Ref RouteTableBPublic
+            DestinationCidrBlock: '0.0.0.0/0'
+            GateWayId: !Ref InternetGateway
+            
+    RouteTablePublicCInternetRoute:
+        Type: 'AWS::EC2::Route'
+        DependsOn: VPCGatewayAttachment
+        Properties:
+            RouteTableId: !Ref RouteTableCPublic
+            DestinationCidrBlock: '0.0.0.0/0'
+            GateWayId: !Ref InternetGateway
+            
+    RouteTablePublicDInternetRoute:
+        Type: 'AWS::EC2::Route'
+        DependsOn: VPCGatewayAttachment
+        Properties:
+            RouteTableId: !Ref RouteTableDPublic
+            DestinationCidrBlock: '0.0.0.0/0'
+            GatewayId: !Ref InternetGateway
+            
+                        
