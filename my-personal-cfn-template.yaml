@@ -200,3 +200,55 @@ Resources:
             Tags:
             -   Key: Name
                 Value: 'D Private RT'
+                
+# Route table assiciation
+
+    RouteTableAssociationAPublic:
+        Type: 'AWS::EC2:RouteTableAssociation'
+        Properties:
+            SubnetId: !Ref SubnetAPublic
+            RouteTableId: !Ref RouteTablePublic
+    
+    RouteTableAssociationAPivate:
+        Type: 'AWS::EC2::RouteTableAssociation'
+        Properties:
+            SubnetId: !Ref SubnetAPrivate
+            RouteTableId: !Ref RouteTableAPrivate
+            
+    RouteTableAssociationBPublic:
+        Type: 'AWS::EC2::RouteTableAssociation'
+        Properties:
+            SubnetId: !Ref SubnetBPublic
+            RouteTableId: !Ref RouteTableBPublic
+            
+    RouteTableAssociationBPrivate:
+        Type: 'AWS::EC2::RouteTableAssociation'
+        Properties:
+            SubnetId: !Ref SubnetBPrivate
+            RouteTableId: !Ref RouteTableBPrivate
+            
+    RouteTableAssociationCPublic:
+        Type: 'AWS::EC2::RouteTableAssociation'
+        Properties:
+            SubnetId: !Ref SubnetCPublic
+            RouteTableId: !Ref RouteTableCPublic
+            
+    RouteTableAssociationCPrivate:
+        Type: 'AWS::EC2::RouteTableAssociation'
+        Properties:
+            SubnetId: !Ref SubnetCPrivate
+            RouteTableId: !Ref RouteTableCPrivate
+            
+    RouteTableAssociationDPublic:
+        Type: 'AWS::EC2::RouteTableAssociation'
+        Properties:
+            SubnetId: !Ref SubnetDPublic
+            RouteTableId: !Ref RouteTableDPublic
+            
+    RouteTableAssociationDPrivate:
+        Type: 'AWS::EC2::RouteTableAssociation'
+        Properties:
+            SubnetId: !Ref SubnetDPrivate
+            RouteTableId: !Ref RouteTableDPrivate
+            
+            
