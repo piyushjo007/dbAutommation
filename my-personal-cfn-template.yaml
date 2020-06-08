@@ -1,0 +1,195 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'VPC : public and private in 4 AZ'
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+    - Label:
+        default: 'VPC Parameters'
+      Parameters:
+      - ClassB
+Parameters :
+    ClassB:
+    Description: ' Class B of VPC (10.xxx.0.0/16)'
+    Type: Number
+    Defailt: 0
+    ConstraintDescription: 'Must be in range of [0-255]'
+    MinValue: 0
+    MaxValue: 255
+
+Resources:
+    VPC:
+        Type: 'AWS::EC2::VPC'
+        Properties:
+            CidrBlock: !Sub '10.${ClassB}.0.0/16'
+            EnableDnsSupport: true
+            EnableDnsHostnames: true
+            InstanceTenancy: default
+            Tags:
+            - Key: Name
+              Value: !Sub '10.${ClassB}.0.0/16'
+    
+    InternetGateway:
+        Type: 'AWS::EC2::InternetGateway'
+        Properties:
+            Tags:
+            -   Key: Name
+                Value: !Sub 10.${ClassB}.0.0/16
+    
+    VPCGatewayAttachment:
+        Type: 'AWS::EC2::VPCGatewayAttachment'
+        Properties:
+            VpcId: !Ref VPC
+            InternetGatewayId: !Ref InternetGateway
+    
+    SubnetAPublic:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [0, !GetAZs '']
+            CidrBlock: !Sub '10.${ClassB}.0.0/20'
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'A public'
+            -   Key: Reach
+                Value: public
+                
+    SubnetAPrivate:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [0, !GetAZs '']
+            CidrBlock: !Sub '10.${ClassB}.16.0/20'
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'A private'
+            -   Key: reach
+                Value: private
+    
+    SubnetBPublic:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [0, !GetAZs '']
+            CidrBlock: !Sub '10.${ClassB}.32.0/20'
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'Public B'
+            -   Key: reach
+                Value: public
+                
+    SubnetBPrivate:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [0, !GetAZs '']
+            CidrBlock: !Sub '10.${ClassB}.48.0/20'
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'B private'
+            -   Key: reach
+                Value: private
+    
+    SubnetCPublic:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [0, !GetAZs '']
+            CidrBlock: !Sub '10.${ClassB}.62.0/20'
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'Public C'
+            -   Key: reach
+                Value: public
+                
+    SubnetCPrivate:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [0, !GetAZs '']
+            VpcId: !Ref VPC
+            CidrBlock: !Sub '10.${ClassB}.80.0/20'
+            Tags:
+            -   Key: Name
+                Value: 'C private'
+            -   Key: Reach
+                Value: Private
+                
+    SubnetDPublic:
+        Type: "AWS::EC2::Subnet"
+        Properties:
+            VpcId: !Ref VPC
+            CidrBlock: !Sub '10.${ClassB}.96.0/20'
+            AvailabilityZone: !Select [0, !GetAZs '']
+            Tags:
+            -   Key: Name
+                Value: 'D public'
+            -   Key: reach
+                Value: public
+                
+    SubnetDPrivate:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [0 , !GetAZs '']
+            VpcId: !Ref VPC
+            CiderBlock: !Sub '10.${ClassB}.112.0/20'
+            Tags:
+            -   Key: Name
+                Value: 'D Private'
+            -   Key: Reach
+                Value: Private
+                
+    RouteTablePublic:
+        Type: 'AWS::EC2::RouteTable'
+        Properties:
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: Public
+                
+    RouteTablePrivate:
+        Type: 'AWS::EC2:RouteTable'
+        Properties:
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: Private
+                
+    RouteTableBPublic:
+        Type: 'AWS::EC2::RouteTable'
+        Properties:
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'B public RT'
+                
+    RouteTableBPrivate:
+        Type: 'AWS::EC2::RouteTable'
+        Properties:
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'B Private RT'
+                
+    RouteTableCPublic:
+        Type: 'AWS::EC2::RouteTable'
+        Properties:
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'C public RT'
+                
+    RouteTableCPrivate:
+        Type: 'AWS::EC2::RouteTable'
+        Properties:
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'C Private RT'
+                
+    RouteTableDPublic:
+        Type: 'AWS::EC2::RouteTable'
+        Properties:
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'D Public RT'
+                
