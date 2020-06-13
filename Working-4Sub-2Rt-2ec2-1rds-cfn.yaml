@@ -219,7 +219,7 @@ Resources:
                 GroupSet:
                 -   !Ref SecurityGroupOfEc2
             BlockDeviceMappings:
-            -   DeviceName: /dev/nvme0n1p1
+            -   DeviceName: /dev/nvme0n1
                 Ebs:
                   DeleteOnTermination: true
                   Encrypted: false
