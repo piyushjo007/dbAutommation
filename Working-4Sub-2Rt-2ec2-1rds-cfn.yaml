@@ -219,7 +219,11 @@ Resources:
                 GroupSet:
                 -   !Ref SecurityGroupOfEc2
             BlockDeviceMappings:
+<<<<<<< HEAD
             -   DeviceName: /dev/sdd
+=======
+            -   DeviceName: /dev/sda
+>>>>>>> f813712a8ef9acd791e5f0d803143543bedb34c3
                 Ebs:
                   DeleteOnTermination: true
                   Encrypted: false
