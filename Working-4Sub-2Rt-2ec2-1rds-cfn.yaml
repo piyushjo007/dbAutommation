@@ -207,7 +207,7 @@ Resources:
     ec2public01:
         Type: 'AWS::EC2::Instance'
         Properties:
-            ImageId: 'ami-0e34e7b9ca0ace12d'
+            ImageId: 'ami-08efb6198b6a70bae'
             AvailabilityZone: !Select [0, !GetAZs '']
             KeyName: !Sub ${KeyName}
             InstanceType: !Sub ${InstanceClass}
@@ -218,12 +218,6 @@ Resources:
                 SubnetId: !Ref SubnetAPublic
                 GroupSet:
                 -   !Ref SecurityGroupOfEc2
-            BlockDeviceMappings:
-            -   DeviceName: /dev/nvme0n1
-                Ebs:
-                  DeleteOnTermination: true
-                  Encrypted: false
-                  VolumeSize: 50
             Tags:
             -   Key: Name
                 Value: Public-ec2
