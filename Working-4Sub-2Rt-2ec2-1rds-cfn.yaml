@@ -12,11 +12,11 @@ Parameters:
         ConstraintDescription: 'Must be in range of 0-255'
         MaxValue: 255
         MinValue: 0
-        
+
     KeyName:
         Type: 'AWS::EC2::KeyPair::KeyName'
         Description: 'Ec2 Scurity key pair of ssh login'
-        
+
     InstanceClass:
         Type: String
         Description: 'Type of Instance class that you want to have'
@@ -34,7 +34,7 @@ Parameters:
 ##                         Resource section                               ##
 ##                                                                        ##
 ############################################################################
-        
+
 Resources:
 ################################## VPC ##################################
     VPC:
@@ -48,14 +48,14 @@ Resources:
             -   Key: Name
                 Value: !Sub 'Test-vpc-10.68.${CidrClass}.0/24'
 
-################################## IGW ##################################                
+################################## IGW ##################################
     InternetGateway:
         Type: 'AWS::EC2::InternetGateway'
         Properties:
             Tags:
             -   Key: Name
                 Value: !Sub 'Igw_vpc_10.68.${CidrClass}.0/24'
-                
+
 ################################## VPC Gate attachemnt ##################################
 
     VPCGatewayAttachment:
@@ -75,7 +75,7 @@ Resources:
             Tags:
             -   Key: Name
                 Value: 'Subnet_A_Public'
-                
+
     SubnetAPrivate:
         Type: 'AWS::EC2::Subnet'
         Properties:
@@ -85,7 +85,7 @@ Resources:
             Tags:
             -   Key: Name
                 Value: 'Subnet_A_Private'
-                
+
     SubnetBPublic:
         Type: 'AWS::EC2::Subnet'
         Properties:
@@ -95,7 +95,7 @@ Resources:
             Tags:
             -   Key: Name
                 Value : 'Subnet_B_public'
-                
+
     SubnetBPrivate:
         Type: 'AWS::EC2::Subnet'
         Properties:
@@ -106,8 +106,8 @@ Resources:
             -   Key: Name
                 Value: 'Sunbet_B_Private'
 
-################################## Route Table Creation ##################################                
-                    
+################################## Route Table Creation ##################################
+
     RouteTablePublic:
         Type: 'AWS::EC2::RouteTable'
         Properties:
@@ -115,7 +115,7 @@ Resources:
             Tags:
             -   Key: Name
                 Value: 'Public Route Table'
-                
+
     RouteTablePrivate:
         Type: 'AWS::EC2::RouteTable'
         Properties:
@@ -123,8 +123,8 @@ Resources:
             Tags:
             -   Key: Name
                 Value: 'Private Route Table'
-                
-################################## Route Table Association ##################################                
+
+################################## Route Table Association ##################################
 
 ##############################
 # RT_PUB <- Pub_A_subnet + Pub_B_subnet
@@ -135,31 +135,31 @@ Resources:
         Properties:
             RouteTableId: !Ref RouteTablePublic
             SubnetId: !Ref SubnetAPublic
-            
+
     SubnetRouteTableAssociationBPublic:
         Type: 'AWS::EC2::SubnetRouteTableAssociation'
         Properties:
             RouteTableId: !Ref RouteTablePublic
             SubnetId: !Ref SubnetBPublic
-            
+
 ##############################
 # RT_PUB <- Pub_A_subnet + Pub_B_subnet
 ##############################
-    
+
     SubnetRouteTableAssociationAPrivate:
         Type: 'AWS::EC2::SubnetRouteTableAssociation'
         Properties:
             RouteTableId: !Ref RouteTablePrivate
             SubnetId: !Ref SubnetAPrivate
-            
+
     SubnetRouteTableAssociationBPrivate:
         Type: 'AWS::EC2::SubnetRouteTableAssociation'
         Properties:
             RouteTableId: !Ref RouteTablePrivate
             SubnetId: !Ref SubnetBPrivate
-            
- ################################## Public Internet Routes ##################################                
-           
+
+ ################################## Public Internet Routes ##################################
+
     RouteTablePublicIntenetForApublicSubnet:
         Type: 'AWS::EC2::Route'
         DependsOn: VPCGatewayAttachment
@@ -167,8 +167,8 @@ Resources:
             RouteTableId: !Ref RouteTablePublic
             DestinationCidrBlock: '0.0.0.0/0'
             GatewayId: !Ref InternetGateway
-            
-################################## Ec2 Creation ##################################                
+
+################################## Ec2 Creation ##################################
 
     SecurityGroupOfEc2:
         Type: 'AWS::EC2::SecurityGroup'
@@ -187,8 +187,8 @@ Resources:
                 ToPort: -1
                 FromPort: -1
                 IpProtocol: -1
-        
-        
+
+
     ec2private01:
         Type: 'AWS::EC2::Instance'
         Properties:
@@ -203,7 +203,7 @@ Resources:
                 SubnetId: !Ref SubnetAPrivate
                 GroupSet:
                 -   !Ref SecurityGroupOfEc2
-                
+
     ec2public01:
         Type: 'AWS::EC2::Instance'
         Properties:
@@ -218,4 +218,10 @@ Resources:
                 SubnetId: !Ref SubnetAPublic
                 GroupSet:
                 -   !Ref SecurityGroupOfEc2
-            
+            BlockDeviceMappings:
+            -   DeviceName: /dev/sda1
+                Ebs:
+                  VolumeSize:60
+            Tags:
+            -   Key: Name
+                Value: Public-ec2
