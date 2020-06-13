@@ -219,7 +219,7 @@ Resources:
                 GroupSet:
                 -   !Ref SecurityGroupOfEc2
             BlockDeviceMappings:
-            -   DeviceName: /dev/sdc
+            -   DeviceName: /dev/sdd
                 Ebs:
                   DeleteOnTermination: true
                   Encrypted: false
