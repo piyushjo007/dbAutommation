@@ -29,6 +29,10 @@ Parameters:
         -   m5.xlarge
         -   m5.2xlarge
         -   t3.small
+  VPCName:
+      Type: String
+      Description: 'Type of Instance class that you want to have'
+      Default: Test-vpc-1'
 
 ############################################################################
 ##                         Resource section                               ##
@@ -207,7 +211,7 @@ Resources:
     ec2public01:
         Type: 'AWS::EC2::Instance'
         Properties:
-            ImageId: 'ami-08efb6198b6a70bae'
+            ImageId: 'ami-0dbb3d532e1e19956'
             AvailabilityZone: !Select [0, !GetAZs '']
             KeyName: !Sub ${KeyName}
             InstanceType: !Sub ${InstanceClass}
@@ -220,4 +224,4 @@ Resources:
                 -   !Ref SecurityGroupOfEc2
             Tags:
             -   Key: Name
-                Value: Public-ec2
+                Value: !Sub ${VPCName}-Public-ec2
