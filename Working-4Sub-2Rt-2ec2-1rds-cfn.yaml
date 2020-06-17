@@ -20,10 +20,13 @@ Parameters:
     InstanceClass:
         Type: String
         Description: 'Type of Instance class that you want to have'
-        Default: 't3.small'
+        Default: 't2.small'
         AllowedValues:
         -   t3.medium
-        -   t3.large
+        -   t2.large
+        -   t2.medium
+        -   m4.large
+        -   m4.xlarge
         -   t3.xlarge
         -   m5.large
         -   m5.xlarge
