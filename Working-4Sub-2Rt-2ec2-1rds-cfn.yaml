@@ -20,7 +20,7 @@ Parameters:
     InstanceClass:
         Type: String
         Description: 'Type of Instance class that you want to have'
-        Default: 't2.small'
+        Default: 't2.large'
         AllowedValues:
         -   t3.medium
         -   t2.large
