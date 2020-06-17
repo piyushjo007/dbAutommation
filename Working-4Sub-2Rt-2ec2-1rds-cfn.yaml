@@ -29,10 +29,10 @@ Parameters:
         -   m5.xlarge
         -   m5.2xlarge
         -   t3.small
-  VPCName:
-      Type: String
-      Description: 'Type of Instance class that you want to have'
-      Default: Test-vpc-1'
+    VPCName:
+        Type: String
+        Description: 'VPC Name'
+        Default: 'Test-vpc-1'
 
 ############################################################################
 ##                         Resource section                               ##
