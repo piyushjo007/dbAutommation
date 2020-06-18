@@ -37,6 +37,11 @@ Parameters:
         Description: 'VPC Name'
         Default: 'Test-vpc-1'
 
+    AMIid:
+        Type: String
+        Description: 'AMI Name'
+        Default: 'ami-0dbb3d532e1e19956'
+
 ############################################################################
 ##                         Resource section                               ##
 ##                                                                        ##
@@ -214,7 +219,7 @@ Resources:
     ec2public01:
         Type: 'AWS::EC2::Instance'
         Properties:
-            ImageId: 'ami-0dbb3d532e1e19956'
+            ImageId: ${AMIid}
             AvailabilityZone: !Select [0, !GetAZs '']
             KeyName: !Sub ${KeyName}
             InstanceType: !Sub ${InstanceClass}
