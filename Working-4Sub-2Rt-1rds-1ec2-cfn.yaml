@@ -1,0 +1,222 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'VPC with 4 subnet'
+############################################################################
+##                         Parameter section                              ##
+##                                                                        ##
+############################################################################
+Parameters:
+    CidrClass:
+        Type: Number
+        Description: 'to decide thecidr range 10.68.xxx.0/24'
+        Default: 0
+        ConstraintDescription: 'Must be in range of 0-255'
+        MaxValue: 255
+        MinValue: 0
+
+    KeyName:
+        Type: 'AWS::EC2::KeyPair::KeyName'
+        Description: 'Ec2 Scurity key pair of ssh login'
+
+    InstanceClass:
+        Type: String
+        Description: 'Type of Instance class that you want to have'
+        Default: 't2.large'
+        AllowedValues:
+        -   t3.medium
+        -   t2.large
+        -   t2.medium
+        -   m4.large
+        -   m4.xlarge
+        -   t3.xlarge
+        -   m5.large
+        -   m5.xlarge
+        -   m5.2xlarge
+        -   t3.small
+    VPCName:
+        Type: String
+        Description: 'VPC Name'
+        Default: 'Test-vpc-1'
+
+    AMIid:
+        Type: String
+        Description: 'AMI Name'
+        Default: 'ami-0dbb3d532e1e19956'
+
+############################################################################
+##                         Resource section                               ##
+##                                                                        ##
+############################################################################
+
+Resources:
+################################## VPC ##################################
+    VPC:
+        Type: 'AWS::EC2::VPC'
+        Properties:
+            CidrBlock: !Sub '10.68.${CidrClass}.0/24'
+            EnableDnsSupport: true
+            EnableDnsHostnames: true
+            InstanceTenancy: default
+            Tags:
+            -   Key: Name
+                Value: !Sub 'Test-vpc-10.68.${CidrClass}.0/24'
+
+################################## IGW ##################################
+    InternetGateway:
+        Type: 'AWS::EC2::InternetGateway'
+        Properties:
+            Tags:
+            -   Key: Name
+                Value: !Sub 'Igw_vpc_10.68.${CidrClass}.0/24'
+
+################################## VPC Gate attachemnt ##################################
+
+    VPCGatewayAttachment:
+        Type: 'AWS::EC2::VPCGatewayAttachment'
+        Properties:
+            VpcId: !Ref VPC
+            InternetGatewayId: !Ref InternetGateway
+
+################################## Subnet creation ##################################
+
+    SubnetAPublic:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [0 , !GetAZs '']
+            CidrBlock: !Sub '10.68.${CidrClass}.0/26'
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'Subnet_A_Public'
+
+    SubnetAPrivate:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [0 , !GetAZs '']
+            CidrBlock: !Sub '10.68.${CidrClass}.64/26'
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'Subnet_A_Private'
+
+    SubnetBPublic:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [1 , !GetAZs '']
+            CidrBlock: !Sub '10.68.${CidrClass}.128/26'
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value : 'Subnet_B_public'
+
+    SubnetBPrivate:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [1, !GetAZs '']
+            CidrBlock: !Sub '10.68.${CidrClass}.192/26'
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'Sunbet_B_Private'
+
+################################## Route Table Creation ##################################
+
+    RouteTablePublic:
+        Type: 'AWS::EC2::RouteTable'
+        Properties:
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'Public Route Table'
+
+    RouteTablePrivate:
+        Type: 'AWS::EC2::RouteTable'
+        Properties:
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'Private Route Table'
+
+################################## Route Table Association ##################################
+
+##############################
+# RT_PUB <- Pub_A_subnet + Pub_B_subnet
+##############################
+
+    SubnetRouteTableAssociationAPublic:
+        Type: 'AWS::EC2::SubnetRouteTableAssociation'
+        Properties:
+            RouteTableId: !Ref RouteTablePublic
+            SubnetId: !Ref SubnetAPublic
+
+    SubnetRouteTableAssociationBPublic:
+        Type: 'AWS::EC2::SubnetRouteTableAssociation'
+        Properties:
+            RouteTableId: !Ref RouteTablePublic
+            SubnetId: !Ref SubnetBPublic
+
+##############################
+# RT_PUB <- Pub_A_subnet + Pub_B_subnet
+##############################
+
+    SubnetRouteTableAssociationAPrivate:
+        Type: 'AWS::EC2::SubnetRouteTableAssociation'
+        Properties:
+            RouteTableId: !Ref RouteTablePrivate
+            SubnetId: !Ref SubnetAPrivate
+
+    SubnetRouteTableAssociationBPrivate:
+        Type: 'AWS::EC2::SubnetRouteTableAssociation'
+        Properties:
+            RouteTableId: !Ref RouteTablePrivate
+            SubnetId: !Ref SubnetBPrivate
+
+ ################################## Public Internet Routes ##################################
+
+    RouteTablePublicIntenetForApublicSubnet:
+        Type: 'AWS::EC2::Route'
+        DependsOn: VPCGatewayAttachment
+        Properties:
+            RouteTableId: !Ref RouteTablePublic
+            DestinationCidrBlock: '0.0.0.0/0'
+            GatewayId: !Ref InternetGateway
+
+################################## Ec2 Creation ##################################
+
+    SecurityGroupOfEc2:
+        Type: 'AWS::EC2::SecurityGroup'
+        Properties:
+            VpcId: !Ref VPC
+            GroupDescription: 'All Port Open 0.0.0.0/0'
+            SecurityGroupIngress:
+                CidrIp: '0.0.0.0/0'
+                Description: 'All inbound connection 0.0.0.0/0'
+                ToPort: -1
+                FromPort: -1
+                IpProtocol: -1
+            SecurityGroupEgress:
+                CidrIp: '0.0.0.0/0'
+                Description: 'All outbount connection'
+                ToPort: -1
+                FromPort: -1
+                IpProtocol: -1
+
+
+    ec2public01:
+        Type: 'AWS::EC2::Instance'
+        Properties:
+            ImageId: ${AMIid}
+            AvailabilityZone: !Select [0, !GetAZs '']
+            KeyName: !Sub ${KeyName}
+            InstanceType: !Sub ${InstanceClass}
+            NetworkInterfaces:
+            -   AssociatePublicIpAddress: true
+                DeleteOnTermination: true
+                DeviceIndex: 0
+                SubnetId: !Ref SubnetAPublic
+                GroupSet:
+                -   !Ref SecurityGroupOfEc2
+            Tags:
+            -   Key: Name
+                Value: !Sub ${VPCName}-Public-ec2
+
+################################# RDS ##################################################
