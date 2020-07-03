@@ -41,7 +41,34 @@ Parameters:
         Type: String
         Description: 'AMI Name'
         Default: 'ami-0dbb3d532e1e19956'
+######################## DB parameter ################################
+    DBInstanceClass:
+        Type: String
+        Description: 'Type of Instance class that you want to have'
+        Default: 't2.large'
+        AllowedValues:
+        -   t3.medium
+        -   t2.large
+        -   t2.medium
+        -   m4.large
+        -   m4.xlarge
+        -   t3.xlarge
+        -   m5.large
+        -   m5.xlarge
+        -   m5.2xlarge
+        -   t3.small
 
+    InstanceIdentifier:
+        Type: String
+        Description: 'DB instance Identifier'
+        Default: 'TestRds'
+
+    DbName:
+      Type: String
+      Description: 'VPC Name'
+      Default: 'test-rds'
+
+    DbName
 ############################################################################
 ##                         Resource section                               ##
 ##                                                                        ##
@@ -220,3 +247,16 @@ Resources:
                 Value: !Sub ${VPCName}-Public-ec2
 
 ################################# RDS ##################################################
+
+    mysqlrds:
+      Type: AWS::RDS::DBInstance
+      Properties:
+          AllocatedStorage: ${stoageAttoted}
+          AllowMajorVersionUpgrade: false
+          AutoMinorVersionUpgrade: false
+#          BackupRetentionPeriod: 1
+          CACertificateIdentifier: 'rds-ca-2019'
+          CopyTagsToSnapshot: true
+          DBInstanceClass: ${DBInstanceClass}
+          DBInstanceIdentifier: ${InstanceIdentifier}
+          DBName: ${DbName}
