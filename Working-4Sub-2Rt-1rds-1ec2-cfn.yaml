@@ -12,7 +12,13 @@ Parameters:
         ConstraintDescription: 'Must be in range of 0-255'
         MaxValue: 255
         MinValue: 0
-
+    AllocateStorage:
+        Type: Number
+        Description: 'Storage to be allocted to RDS'
+        Default: 20
+        ConstraintDescription: 'Must be in range of 10-60'
+        MaxValue: 60
+        MinValue: 10
     KeyName:
         Type: 'AWS::EC2::KeyPair::KeyName'
         Description: 'Ec2 Scurity key pair of ssh login'
@@ -20,7 +26,7 @@ Parameters:
     InstanceClass:
         Type: String
         Description: 'Type of Instance class that you want to have'
-        Default: 't2.large'
+        Default: 't3.medium'
         AllowedValues:
         -   t3.medium
         -   t2.large
@@ -40,23 +46,49 @@ Parameters:
     AMIid:
         Type: String
         Description: 'AMI Name'
-        Default: 'ami-0dbb3d532e1e19956'
+        Default: 'ami-0e34e7b9ca0ace12d'
 ######################## DB parameter ################################
     DBInstanceClass:
         Type: String
         Description: 'Type of Instance class that you want to have'
-        Default: 't2.large'
+        Default: 'db.t3.medium'
         AllowedValues:
-        -   t3.medium
-        -   t2.large
-        -   t2.medium
-        -   m4.large
-        -   m4.xlarge
-        -   t3.xlarge
-        -   m5.large
-        -   m5.xlarge
-        -   m5.2xlarge
-        -   t3.small
+        -   db.m4.large
+        -   db.m4.large
+        -   db.m4.large
+        -   db.m5.large
+        -   db.m5.large
+        -   db.m5.large
+        -   db.r4.large
+        -   db.r4.large
+        -   db.r4.large
+        -   db.r5.large
+        -   db.r5.large
+        -   db.r5.large
+        -   db.t2.large
+        -   db.t2.large
+        -   db.t2.large
+        -   db.t2.medium
+        -   db.t2.medium
+        -   db.t2.medium
+        -   db.t2.micro
+        -   db.t2.micro
+        -   db.t2.micro
+        -   db.t2.small
+        -   db.t2.small
+        -   db.t2.small
+        -   db.t3.large
+        -   db.t3.large
+        -   db.t3.large
+        -   db.t3.medium
+        -   db.t3.medium
+        -   db.t3.medium
+        -   db.t3.micro
+        -   db.t3.micro
+        -   db.t3.micro
+        -   db.t3.small
+        -   db.t3.small
+        -   db.t3.small
 
     DbInstanceIdentifier:
         Type: String
@@ -230,7 +262,7 @@ Resources:
     ec2public01:
         Type: 'AWS::EC2::Instance'
         Properties:
-            ImageId: ${AMIid}
+            ImageId: !Sub ${AMIid}
             AvailabilityZone: !Select [0, !GetAZs '']
             KeyName: !Sub ${KeyName}
             InstanceType: !Sub ${InstanceClass}
@@ -254,17 +286,18 @@ Resources:
             - !Ref SubnetAPublic
             - !Ref SubnetBPublic
             Tags:
-            - Tag
+            -   Key: Name
+                Value: !Sub ${VPCName}-RDS-subnet
 
 ################################# DB subnet group ##################################################
 
     mysqlrds:
       Type: AWS::RDS::DBInstance
-      Properties:
-        DependsOn:
+      DependsOn:
             - DBsubnetgroup
             - SecurityGroupOfEc2
-        AllocatedStorage: ${stoageAttoted}
+      Properties:
+        AllocatedStorage: !Sub ${AllocateStorage}
         AllowMajorVersionUpgrade: false
         AutoMinorVersionUpgrade: false
 #       BackupRetentionPeriod: 1
@@ -274,8 +307,8 @@ Resources:
         DBInstanceIdentifier: !Sub ${DbInstanceIdentifier}
         DBName: !Sub ${DbName}
         DBSubnetGroupName: !Ref DBsubnetgroup
-        DBSecurityGroups:
-            - !Ref SecurityGroupOfEc2
+#        DBSecurityGroups:
+#            - !Ref SecurityGroupOfEc2
 #       DeleteAutomatedBackups: Boolean
 #       DeletionProtection: Boolean
 #       Domain: String
@@ -309,7 +342,7 @@ Resources:
         Tags:
           - Key: name
             Value: cfn-created-db
-      #    Timezone: String
-#          UseDefaultProcessorFeatures: Boolean
-      #    VPCSecurityGroups:
-      #    - String
+#       Timezone: String
+#       UseDefaultProcessorFeatures: Boolean
+        VPCSecurityGroups:
+            - !Ref SecurityGroupOfEc2
