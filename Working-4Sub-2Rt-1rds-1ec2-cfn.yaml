@@ -58,17 +58,16 @@ Parameters:
         -   m5.2xlarge
         -   t3.small
 
-    InstanceIdentifier:
+    DbInstanceIdentifier:
         Type: String
         Description: 'DB instance Identifier'
         Default: 'TestRds'
 
     DbName:
       Type: String
-      Description: 'VPC Name'
-      Default: 'test-rds'
+      Description: 'Database name'
+      Default: 'initialdb'
 
-    DbName
 ############################################################################
 ##                         Resource section                               ##
 ##                                                                        ##
@@ -247,16 +246,70 @@ Resources:
                 Value: !Sub ${VPCName}-Public-ec2
 
 ################################# RDS ##################################################
+    DBsubnetgroup:
+        Type: "AWS::RDS::DBSubnetGroup"
+        Properties:
+            DBSubnetGroupDescription: 'DB Subnet group for RDS instance.'
+            SubnetIds:
+            - !Ref SubnetAPublic
+            - !Ref SubnetBPublic
+            Tags:
+            - Tag
+
+################################# DB subnet group ##################################################
 
     mysqlrds:
       Type: AWS::RDS::DBInstance
       Properties:
-          AllocatedStorage: ${stoageAttoted}
-          AllowMajorVersionUpgrade: false
-          AutoMinorVersionUpgrade: false
-#          BackupRetentionPeriod: 1
-          CACertificateIdentifier: 'rds-ca-2019'
-          CopyTagsToSnapshot: true
-          DBInstanceClass: ${DBInstanceClass}
-          DBInstanceIdentifier: ${InstanceIdentifier}
-          DBName: ${DbName}
+        DependsOn:
+            - DBsubnetgroup
+            - SecurityGroupOfEc2
+        AllocatedStorage: ${stoageAttoted}
+        AllowMajorVersionUpgrade: false
+        AutoMinorVersionUpgrade: false
+#       BackupRetentionPeriod: 1
+        CACertificateIdentifier: 'rds-ca-2019'
+        CopyTagsToSnapshot: true
+        DBInstanceClass: !Sub ${DBInstanceClass}
+        DBInstanceIdentifier: !Sub ${DbInstanceIdentifier}
+        DBName: !Sub ${DbName}
+        DBSubnetGroupName: !Ref DBsubnetgroup
+        DBSecurityGroups:
+            - !Ref SecurityGroupOfEc2
+#       DeleteAutomatedBackups: Boolean
+#       DeletionProtection: Boolean
+#       Domain: String
+#       DomainIAMRoleName: String
+#       EnableCloudwatchLogsExports:
+#            - String
+#       EnableIAMDatabaseAuthentication: Boolean
+        EnablePerformanceInsights: true
+        Engine: MySQL
+        EngineVersion: 5.7.22
+#       Iops:
+#       KmsKeyId: String
+#       LicenseModel: String
+        MasterUsername: admin
+        MasterUserPassword: asdfasdf
+#          MaxAllocatedStorage: 30
+#          MonitoringInterval: Integer
+#          MonitoringRoleArn: String
+#          MultiAZ: Boolean
+#          OptionGroupName: String
+#          PerformanceInsightsKMSKeyId: String
+        PerformanceInsightsRetentionPeriod: 7
+        Port: 3306
+#          PreferredBackupWindow: String
+#          PreferredMaintenanceWindow: String
+        PubliclyAccessible: false
+#          SourceDBInstanceIdentifier: String
+#          SourceRegion: String
+#          StorageEncrypted: Boolean
+        StorageType: gp2
+        Tags:
+          - Key: name
+            Value: cfn-created-db
+      #    Timezone: String
+#          UseDefaultProcessorFeatures: Boolean
+      #    VPCSecurityGroups:
+      #    - String
