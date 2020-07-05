@@ -1,0 +1,368 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'VPC with 4 subnet'
+############################################################################
+##                         Parameter section                              ##
+##                                                                        ##
+############################################################################
+Parameters:
+    CidrClass:
+        Type: Number
+        Description: 'to decide thecidr range 10.68.xxx.0/24'
+        Default: 0
+        ConstraintDescription: 'Must be in range of 0-255'
+        MaxValue: 255
+        MinValue: 0
+    AllocateStorage:
+        Type: Number
+        Description: 'Storage to be allocted to RDS'
+        Default: 20
+        ConstraintDescription: 'Must be in range of 10-60'
+        MaxValue: 60
+        MinValue: 10
+    KeyName:
+        Type: 'AWS::EC2::KeyPair::KeyName'
+        Description: 'Ec2 Scurity key pair of ssh login'
+
+    InstanceClass:
+        Type: String
+        Description: 'Type of Instance class that you want to have'
+        Default: 't3.medium'
+        AllowedValues:
+        -   t3.medium
+        -   t2.large
+        -   t2.medium
+        -   m4.large
+        -   m4.xlarge
+        -   t3.xlarge
+        -   m5.large
+        -   m5.xlarge
+        -   m5.2xlarge
+        -   t3.small
+    VPCName:
+        Type: String
+        Description: 'VPC Name'
+        Default: 'Test-vpc-1'
+
+    AMIid:
+        Type: String
+        Description: 'AMI Name'
+        Default: 'ami-0e34e7b9ca0ace12d'
+######################## DB parameter ################################
+    DBInstanceClass:
+        Type: String
+        Description: 'Type of Instance class that you want to have'
+        Default: 'db.t3.medium'
+        AllowedValues:
+        -   db.m4.large
+        -   db.m4.large
+        -   db.m4.large
+        -   db.m5.large
+        -   db.m5.large
+        -   db.m5.large
+        -   db.r4.large
+        -   db.r4.large
+        -   db.r4.large
+        -   db.r5.large
+        -   db.r5.large
+        -   db.r5.large
+        -   db.t2.large
+        -   db.t2.large
+        -   db.t2.large
+        -   db.t2.medium
+        -   db.t2.medium
+        -   db.t2.medium
+        -   db.t2.micro
+        -   db.t2.micro
+        -   db.t2.micro
+        -   db.t2.small
+        -   db.t2.small
+        -   db.t2.small
+        -   db.t3.large
+        -   db.t3.large
+        -   db.t3.large
+        -   db.t3.medium
+        -   db.t3.medium
+        -   db.t3.medium
+        -   db.t3.micro
+        -   db.t3.micro
+        -   db.t3.micro
+        -   db.t3.small
+        -   db.t3.small
+        -   db.t3.small
+
+    DbInstanceIdentifier:
+        Type: String
+        Description: 'DB instance Identifier'
+        Default: 'TestRds'
+
+    DbName:
+      Type: String
+      Description: 'Database name'
+      Default: 'initialdb'
+
+############################################################################
+##                         Resource section                               ##
+##                                                                        ##
+############################################################################
+
+Resources:
+################################## VPC ##################################
+    VPC:
+        Type: 'AWS::EC2::VPC'
+        Properties:
+            CidrBlock: !Sub '10.68.${CidrClass}.0/24'
+            EnableDnsSupport: true
+            EnableDnsHostnames: true
+            InstanceTenancy: default
+            Tags:
+            -   Key: Name
+                Value: !Sub 'Test-vpc-10.68.${CidrClass}.0/24'
+
+################################## IGW ##################################
+    InternetGateway:
+        Type: 'AWS::EC2::InternetGateway'
+        Properties:
+            Tags:
+            -   Key: Name
+                Value: !Sub 'Igw_vpc_10.68.${CidrClass}.0/24'
+
+################################## VPC Gate attachemnt ##################################
+
+    VPCGatewayAttachment:
+        Type: 'AWS::EC2::VPCGatewayAttachment'
+        Properties:
+            VpcId: !Ref VPC
+            InternetGatewayId: !Ref InternetGateway
+
+################################## Subnet creation ##################################
+
+    SubnetAPublic:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [0 , !GetAZs '']
+            CidrBlock: !Sub '10.68.${CidrClass}.0/26'
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'Subnet_A_Public'
+
+    SubnetAPrivate:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [0 , !GetAZs '']
+            CidrBlock: !Sub '10.68.${CidrClass}.64/26'
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'Subnet_A_Private'
+
+    SubnetBPublic:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [1 , !GetAZs '']
+            CidrBlock: !Sub '10.68.${CidrClass}.128/26'
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value : 'Subnet_B_public'
+
+    SubnetBPrivate:
+        Type: 'AWS::EC2::Subnet'
+        Properties:
+            AvailabilityZone: !Select [1, !GetAZs '']
+            CidrBlock: !Sub '10.68.${CidrClass}.192/26'
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'Sunbet_B_Private'
+
+################################## Route Table Creation ##################################
+
+    RouteTablePublic:
+        Type: 'AWS::EC2::RouteTable'
+        Properties:
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'Public Route Table'
+
+    RouteTablePrivate:
+        Type: 'AWS::EC2::RouteTable'
+        Properties:
+            VpcId: !Ref VPC
+            Tags:
+            -   Key: Name
+                Value: 'Private Route Table'
+
+################################## Route Table Association ##################################
+
+##############################
+# RT_PUB <- Pub_A_subnet + Pub_B_subnet
+##############################
+
+    SubnetRouteTableAssociationAPublic:
+        Type: 'AWS::EC2::SubnetRouteTableAssociation'
+        Properties:
+            RouteTableId: !Ref RouteTablePublic
+            SubnetId: !Ref SubnetAPublic
+
+    SubnetRouteTableAssociationBPublic:
+        Type: 'AWS::EC2::SubnetRouteTableAssociation'
+        Properties:
+            RouteTableId: !Ref RouteTablePublic
+            SubnetId: !Ref SubnetBPublic
+
+##############################
+# RT_PUB <- Pub_A_subnet + Pub_B_subnet
+##############################
+
+    SubnetRouteTableAssociationAPrivate:
+        Type: 'AWS::EC2::SubnetRouteTableAssociation'
+        Properties:
+            RouteTableId: !Ref RouteTablePrivate
+            SubnetId: !Ref SubnetAPrivate
+
+    SubnetRouteTableAssociationBPrivate:
+        Type: 'AWS::EC2::SubnetRouteTableAssociation'
+        Properties:
+            RouteTableId: !Ref RouteTablePrivate
+            SubnetId: !Ref SubnetBPrivate
+
+ ################################## Public Internet Routes ##################################
+
+    RouteTablePublicIntenetForApublicSubnet:
+        Type: 'AWS::EC2::Route'
+        DependsOn: VPCGatewayAttachment
+        Properties:
+            RouteTableId: !Ref RouteTablePublic
+            DestinationCidrBlock: '0.0.0.0/0'
+            GatewayId: !Ref InternetGateway
+
+################################## Ec2 Creation ##################################
+
+    SecurityGroupOfEc2:
+        Type: 'AWS::EC2::SecurityGroup'
+        Properties:
+            VpcId: !Ref VPC
+            GroupDescription: 'All Port Open 0.0.0.0/0'
+            SecurityGroupIngress:
+                CidrIp: '0.0.0.0/0'
+                Description: 'All inbound connection 0.0.0.0/0'
+                ToPort: -1
+                FromPort: -1
+                IpProtocol: -1
+            SecurityGroupEgress:
+                CidrIp: '0.0.0.0/0'
+                Description: 'All outbount connection'
+                ToPort: -1
+                FromPort: -1
+                IpProtocol: -1
+
+
+    ec2public01:
+        Type: 'AWS::EC2::Instance'
+        Properties:
+            ImageId: !Sub ${AMIid}
+            AvailabilityZone: !Select [0, !GetAZs '']
+            KeyName: !Sub ${KeyName}
+            InstanceType: !Sub ${InstanceClass}
+            NetworkInterfaces:
+            -   AssociatePublicIpAddress: true
+                DeleteOnTermination: true
+                DeviceIndex: 0
+                SubnetId: !Ref SubnetAPublic
+                GroupSet:
+                -   !Ref SecurityGroupOfEc2
+            Tags:
+            -   Key: Name
+                Value: !Sub ${VPCName}-Public-ec2
+
+################################# RDS ##################################################
+    DBsubnetgroup:
+        Type: "AWS::RDS::DBSubnetGroup"
+        Properties:
+            DBSubnetGroupDescription: 'DB Subnet group for RDS instance.'
+            SubnetIds:
+            - !Ref SubnetAPublic
+            - !Ref SubnetBPublic
+            Tags:
+            -   Key: Name
+                Value: !Sub ${VPCName}-RDS-subnet
+
+################################# DB subnet group ##################################################
+
+    mysqlrds:
+      Type: AWS::RDS::DBInstance
+      DependsOn:
+            - DBsubnetgroup
+            - SecurityGroupOfEc2
+      Properties:
+        AllocatedStorage: !Sub ${AllocateStorage}
+        AllowMajorVersionUpgrade: false
+        AutoMinorVersionUpgrade: false
+#       BackupRetentionPeriod: 1
+        CACertificateIdentifier: 'rds-ca-2019'
+        CopyTagsToSnapshot: true
+        DBInstanceClass: !Sub ${DBInstanceClass}
+        DBInstanceIdentifier: !Sub ${DbInstanceIdentifier}
+        DBName: !Sub ${DbName}
+        DBSubnetGroupName: !Ref DBsubnetgroup
+#        DBSecurityGroups:
+#            - !Ref SecurityGroupOfEc2
+#       DeleteAutomatedBackups: Boolean
+#       DeletionProtection: Boolean
+#       Domain: String
+#       DomainIAMRoleName: String
+#       EnableCloudwatchLogsExports:
+#            - String
+#       EnableIAMDatabaseAuthentication: Boolean
+        EnablePerformanceInsights: true
+        Engine: MySQL
+        EngineVersion: 5.7.22
+#       Iops:
+#       KmsKeyId: String
+#       LicenseModel: String
+        MasterUsername: admin
+        MasterUserPassword: asdfasdf
+#          MaxAllocatedStorage: 30
+#          MonitoringInterval: Integer
+#          MonitoringRoleArn: String
+#          MultiAZ: Boolean
+#          OptionGroupName: String
+#          PerformanceInsightsKMSKeyId: String
+        PerformanceInsightsRetentionPeriod: 7
+        Port: 3306
+#          PreferredBackupWindow: String
+#          PreferredMaintenanceWindow: String
+        PubliclyAccessible: false
+#          SourceDBInstanceIdentifier: String
+#          SourceRegion: String
+#          StorageEncrypted: Boolean
+        StorageType: gp2
+        Tags:
+          - Key: name
+            Value: cfn-created-db
+#       Timezone: String
+#       UseDefaultProcessorFeatures: Boolean
+        VPCSecurityGroups:
+            - !Ref SecurityGroupOfEc2
+
+
+    testdb:
+        Type: AWS::RDS::DBInstance
+        DeletionPolicy: 'Retain'
+        Properties:
+            CACertificateIdentifier: 'rds-ca-2019'
+            CopyTagsToSnapshot: true
+            AllocatedStorage: !Sub ${AllocateStorage}
+            DBInstanceClass: db.t3.small
+            Engine: MySQL
+            EngineVersion: 5.7.22
+            StorageType: gp2
+            MasterUsername: admind
+            MasterUserPassword: asdfasdf
+#            Port: 3306
+#            PubliclyAccessible: false
+            Tags:
+            -   Key: Name
+                Value: cfn-included-db
